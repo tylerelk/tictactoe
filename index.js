@@ -1,3 +1,5 @@
+let gameOver = false;
+
 //Game constant values and structures
 
 const gameConstants = (function () {
@@ -40,6 +42,7 @@ const gameConstants = (function () {
     //determine round status, apply score
     if (win === true) {
       player.score++;
+      gameDisplay.updateScoreDisplay();
       win = false;
       resetBoard(board);
     } else {console.log('Next Turn')}
@@ -67,24 +70,49 @@ const gameConstants = (function () {
   let player1 = new Player("X", 0);
   let player2 = new Player("O", 1);
 
-  return { board, player1, player2, checkWin, turn, win };
+  return { board, player1, player2, checkWin, turn, win, resetBoard };
 })();
 
 //DOM Manipulation and round play
 
 const gameDisplay = (function () {
+    //Getters
     const title = document.querySelector('.title');
     const spaces = document.querySelectorAll('.space');
     const player1Symbol = `<h1>${gameConstants.player1.symbol}</h1>`;
     const player2Symbol = `<h1>${gameConstants.player2.symbol}</h1>`;
     const startButton = document.querySelector('.start');
+    const resetbutton = document.querySelector('.reset');
+    const gameControls = document.querySelector('.controls-and-score')
+    const p1scoreDisplay = document.querySelector('.p1score');
+    const p2scoreDisplay = document.querySelector('.p2score');
+
+    //Intro effects
+
+    window.addEventListener('load', () => {
+      title.style.transform = 'translateY(0px)';
+      gameControls.style.opacity = '100%'
+    });
+
+    resetbutton.addEventListener('click', () => {
+      gameConstants.resetBoard(gameConstants.board);
+      gameConstants.player1.score = 0;
+      gameConstants.player2.score = 0;
+      updateScoreDisplay();
+      spaces.forEach(space => space.innerHTML = '');
+    })
+
+    function updateScoreDisplay() {
+      p1scoreDisplay.textContent = gameConstants.player1.score;
+      p2scoreDisplay.textContent = gameConstants.player2.score;
+    }
 
     startButton.addEventListener('click', () => {
         spaces.forEach(space => space.innerHTML = '');
         //Random player starts
         let coinFlip = Math.floor((Math.random()) * 2);
         if (coinFlip === 0) {gameConstants.turn = 0} else if (coinFlip === 1) {gameConstants.turn = 1};
-    })
+    });
 
     spaces.forEach((space) => {
         space.addEventListener('click', () => {
@@ -107,5 +135,5 @@ const gameDisplay = (function () {
         })
     });
 
-    return {title, startButton};
+    return {title, startButton, updateScoreDisplay};
 })();
