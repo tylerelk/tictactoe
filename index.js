@@ -1,5 +1,3 @@
-let gameOver = false;
-
 //Game constant values and structures
 
 const gameConstants = (function () {
@@ -30,22 +28,32 @@ const gameConstants = (function () {
 //compare player matches to winning combinations
     for (let i = 0; i < winningCombos.length; i++) {
         if (win === true) {return};
+        if (!board.includes(null)) {
+          gameDisplay.message.textContent = 'Tie';
+          resetBoard(board);
+          gameDisplay.spaces.forEach(space => space.innerHTML = '');
+          turn = null;
+        };
         let a = winningCombos[i][0];
         let b = winningCombos[i][1];
         let c = winningCombos[i][2];
         if (matches.includes(a) && matches.includes(b) && matches.includes(c)) {
-            console.log('WIN');
             win = true;
             break;
         }
     }
+
     //determine round status, apply score
     if (win === true) {
+      if (player.turnMarker === 0) {turn = 1};
+      if (player.turnMarker === 1) {turn = 0};
       player.score++;
+      gameDisplay.message.innerHTML = `${player.symbol} wins - <br>Other player turn`;
       gameDisplay.updateScoreDisplay();
       win = false;
       resetBoard(board);
-    } else {console.log('Next Turn')}
+      gameDisplay.spaces.forEach(space => space.innerHTML = '');
+    };
   };
 
   function resetBoard(arr) {
@@ -86,54 +94,76 @@ const gameDisplay = (function () {
     const gameControls = document.querySelector('.controls-and-score')
     const p1scoreDisplay = document.querySelector('.p1score');
     const p2scoreDisplay = document.querySelector('.p2score');
+    const messageArea = document.querySelector('.messages');
+    const message = document.querySelector('.messages>h3');
 
     //Intro effects
 
     window.addEventListener('load', () => {
       title.style.transform = 'translateY(0px)';
-      gameControls.style.opacity = '100%'
+      gameControls.style.opacity = '100%';
+      messageArea.style.opacity = '100%';
     });
-
+    //Reset game with button
     resetbutton.addEventListener('click', () => {
       gameConstants.resetBoard(gameConstants.board);
       gameConstants.player1.score = 0;
       gameConstants.player2.score = 0;
       updateScoreDisplay();
       spaces.forEach(space => space.innerHTML = '');
-    })
+      message.textContent = 'Game Cleared'
+    });
+    //Update Score after each round
 
     function updateScoreDisplay() {
       p1scoreDisplay.textContent = gameConstants.player1.score;
       p2scoreDisplay.textContent = gameConstants.player2.score;
     }
-
+    //Initialize board on start
     startButton.addEventListener('click', () => {
         spaces.forEach(space => space.innerHTML = '');
+        gameConstants.win = false;
+        gameConstants.resetBoard(gameConstants.board);
         //Random player starts
         let coinFlip = Math.floor((Math.random()) * 2);
-        if (coinFlip === 0) {gameConstants.turn = 0} else if (coinFlip === 1) {gameConstants.turn = 1};
+        if (coinFlip === 0) {
+          gameConstants.turn = 0;
+          message.textContent = 'Turn: X';
+        } else if (coinFlip === 1) {
+          gameConstants.turn = 1;
+          message.textContent = 'Turn: O';
+        };
+        startButton.style.opacity = '0%'
     });
 
     spaces.forEach((space) => {
         space.addEventListener('click', () => {
           let spaceID = space.dataset.spaceid;
-
           if (gameConstants.turn === null) {
-            console.log('Press Start');
+            message.style.color = 'var(--pink)';
+            message.style.transform = 'scale(1.5)'
             return;
-          } else if (gameConstants.turn === 0) {
+          } else if (gameConstants.turn === 0 && space.textContent != 'X' && space.textContent != 'O') {
+            message.style.color = 'white';
+            message.style.transform = 'scale(1)'
+            gameConstants.turn = 1;
+            message.textContent = 'Turn: O';
             gameConstants.player1.placeSymbol(spaceID);
             space.innerHTML = player1Symbol;
             gameConstants.checkWin(gameConstants.player1);
-            gameConstants.turn = 1;
-          } else if (gameConstants.turn === 1) {
+            return;
+          } else if (gameConstants.turn === 1 && space.textContent != 'O' && space.textContent != 'X') {
+            message.style.color = 'white';
+            message.style.transform = 'scale(1)'
+            gameConstants.turn = 0;
+            message.textContent = 'Turn: X';
             gameConstants.player2.placeSymbol(spaceID);
             space.innerHTML = player2Symbol;
             gameConstants.checkWin(gameConstants.player2);
-            gameConstants.turn = 0;
+            return;
           }
         })
     });
 
-    return {title, startButton, updateScoreDisplay};
+    return {title, startButton, updateScoreDisplay, messageArea, message, spaces};
 })();
