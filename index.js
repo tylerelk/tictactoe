@@ -111,6 +111,7 @@ const gameDisplay = (function () {
       gameConstants.player2.score = 0;
       updateScoreDisplay();
       spaces.forEach(space => space.innerHTML = '');
+      location.reload();
       message.textContent = 'Game Cleared'
     });
     //Update Score after each round
